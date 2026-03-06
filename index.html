@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TSEA – Gerador de resumo técnico</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #ff000d;
+      --black: #000;
+      --white: #fff;
+      --bg: #ece8e3;
+      --text-dark: #2a2c2f;
+      --text-placeholder: #cfccc9;
+      --border: #cfccc9;
+      --input-border: #d8daeb;
+      --text-tertiary: #7d7d7d;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      position: relative;
+      background: var(--red);
+      height: 297px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* grafismo SVG decorativo */
+    .header-grafismo {
+      position: absolute;
+      top: -157px;
+      left: calc(50% + 200px);
+      width: 927px;
+      height: 813px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .logo {
+      margin-top: 31px;
+      height: 43px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .logo svg {
+      height: 49px;
+      width: 160px;
+    }
+
+    /* hero card */
+    .hero-card {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 921px;
+      max-width: calc(100% - 48px);
+      background: var(--black);
+      color: var(--white);
+      padding: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      z-index: 2;
+    }
+
+    .hero-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 32px;
+      line-height: 1.2;
+      flex: 0 0 auto;
+      max-width: 380px;
+    }
+
+    .hero-desc {
+      font-size: 16px;
+      line-height: 1.4;
+      flex: 1;
+      max-width: 320px;
+    }
+
+    /* ── MAIN FORM CARD ── */
+    .main-wrap {
+      display: flex;
+      justify-content: center;
+      padding: 0 24px 60px;
+    }
+
+    .form-card {
+      width: 921px;
+      max-width: 100%;
+      background: var(--white);
+      padding: 40px 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    /* ── SECTION HEADING ── */
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .section-head span {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-dark);
+      white-space: nowrap;
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── FIELD GROUP ── */
+    .fields-section {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 17px;
+    }
+
+    .field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 16px;
+      color: var(--text-dark);
+      line-height: 1.2;
+    }
+
+    .field label .req {
+      color: var(--red);
+    }
+
+    .field input,
+    .field .select-box,
+    .field .obs-input {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-dark);
+      background: var(--white);
+      outline: none;
+      width: 100%;
+      transition: border-color .2s;
+    }
+
+    .field input::placeholder {
+      color: var(--text-placeholder);
+    }
+
+    .field input:focus {
+      border-color: #888;
+    }
+
+    /* custom select */
+    .select-wrap {
+      position: relative;
+    }
+
+    .select-wrap select {
+      appearance: none;
+      -webkit-appearance: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 42px 16px 16px;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-placeholder);
+      background: var(--white);
+      outline: none;
+      width: 100%;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+
+    .select-wrap select:focus { border-color: #888; }
+
+    .select-wrap::after {
+      content: '';
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 6px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23cfccc9' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center;
+      pointer-events: none;
+    }
+
+    /* ── UPLOADER ── */
+    .uploader {
+      border: 1.5px dashed var(--input-border);
+      border-radius: 16px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      background: var(--white);
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+
+    .uploader:hover {
+      border-color: #aaa;
+      background: #fafafa;
+    }
+
+    .uploader.drag-over {
+      border-color: var(--red);
+      background: #fff5f5;
+    }
+
+    .upload-icon {
+      width: 60px;
+      height: 60px;
+    }
+
+    .upload-icon svg { width: 100%; height: 100%; }
+
+    .drag-text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-align: center;
+    }
+
+    .drag-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: #101111;
+      letter-spacing: 0.18px;
+    }
+
+    .drag-sub {
+      font-size: 14px;
+      color: var(--text-tertiary);
+      line-height: 1.5;
+    }
+
+    .select-file-btn {
+      background: var(--white);
+      border: 1px solid #d5d3e0;
+      border-radius: 10px;
+      padding: 0 16px;
+      height: 36px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #2e3037;
+      letter-spacing: 0.56px;
+      text-transform: capitalize;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+      transition: background .15s, box-shadow .15s;
+    }
+
+    .select-file-btn:hover {
+      background: #f4f4f6;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+    }
+
+    /* file list */
+    .file-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f7f7f7;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--text-dark);
+    }
+
+    .file-item button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #999;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    /* ── PROGRESS BAR ── */
+    .file-item-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .file-progress {
+      height: 3px;
+      background: #e8e8e8;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .file-progress-bar {
+      height: 100%;
+      background: var(--red);
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    .file-progress-bar.done {
+      background: #22c55e;
+      transition: width 0.2s ease, background 0.3s ease;
+    }
+
+    .file-size-label {
+      color: #aaa;
+      font-size: 12px;
+    }
+
+    .file-status {
+      font-size: 11px;
+      color: #aaa;
+      white-space: nowrap;
+    }
+
+    .file-status.done { color: #22c55e; }
+
+    /* ── INFO TEXT ── */
+    .info-text {
+      font-size: 16px;
+      line-height: 1.4;
+      color: var(--text-dark);
+    }
+
+    /* ── SUBMIT ── */
+    .submit-btn {
+      background: var(--red);
+      color: var(--white);
+      border: none;
+      padding: 16px 20px;
+      font-size: 20px;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      width: fit-content;
+      align-self: center;
+    }
+
+    .submit-btn:hover { opacity: .9; }
+    .submit-btn:active { transform: scale(.98); }
+
+    /* hidden file input */
+    #fileInput { display: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      .hero-card { width: 100%; max-width: 100%; border-radius: 0; flex-direction: column; gap: 16px; padding: 32px 24px; }
+      .hero-title { max-width: 100%; font-size: 26px; }
+      .form-card { padding: 32px 24px; }
+      .field-row { flex-direction: column; }
+    }
+    /* ── ERROR TOAST ── */
+    .error-toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120px);
+      background: #1a1a1a;
+      color: white;
+      padding: 14px 20px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.4;
+      z-index: 9999;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      min-width: 320px;
+      max-width: calc(100vw - 48px);
+      border-left: 4px solid var(--red);
+    }
+    .error-toast.visible { transform: translateX(-50%) translateY(0); }
+    .error-toast button {
+      background: none; border: none; color: #aaa;
+      cursor: pointer; font-size: 16px; margin-left: auto; padding: 0 0 0 8px;
+    }
+    .error-toast button:hover { color: white; }
+
+    /* ── SUCCESS SCREEN ── */
+    .success-screen {
+      display: flex;
+      justify-content: center;
+      padding: 0 24px 60px;
+    }
+
+    .success-card {
+      width: 921px;
+      max-width: 100%;
+      background: var(--white);
+      padding: 64px 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      text-align: center;
+    }
+
+    /* SVG check animation */
+    .check-circle {
+      stroke-dasharray: 276;
+      stroke-dashoffset: 276;
+      animation: drawCircle 0.6s ease forwards 0.1s;
+    }
+    .check-path {
+      stroke-dasharray: 60;
+      stroke-dashoffset: 60;
+      animation: drawCheck 0.4s ease forwards 0.7s;
+    }
+    @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+    @keyframes drawCheck  { to { stroke-dashoffset: 0; } }
+
+    .success-icon { animation: popIn 0.4s ease forwards; }
+    @keyframes popIn {
+      0%   { transform: scale(0.6); opacity: 0; }
+      70%  { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-dark);
+      line-height: 1.2;
+      max-width: 540px;
+    }
+
+    .success-body {
+      font-size: 16px;
+      color: var(--text-dark);
+      line-height: 1.6;
+      max-width: 520px;
+    }
+
+    .success-email-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #fff5f5;
+      border: 1px solid rgba(255,0,13,0.2);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-size: 15px;
+      color: var(--text-dark);
+      line-height: 1.5;
+      max-width: 520px;
+      width: 100%;
+      text-align: left;
+    }
+    .success-email-box strong { color: var(--red); }
+
+    .success-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(255,119,0,0.1);
+      border-radius: 4px;
+      padding: 10px 16px;
+      font-size: 14px;
+      color: #cc6200;
+      line-height: 1.5;
+      max-width: 520px;
+      width: 100%;
+      text-align: left;
+    }
+
+    .new-analysis-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--black);
+      color: var(--white);
+      border: none;
+      padding: 16px 32px;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      margin-top: 8px;
+    }
+    .new-analysis-btn:hover { background: #222; }
+    .new-analysis-btn:active { transform: scale(.98); }
+
+  </style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="header">
+  <!-- Grafismo decorativo -->
+  <svg class="header-grafismo" viewBox="0 0 927 813" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path opacity="0.3" d="M39.3453 792.685L38.5703 793.103L39.3453 792.745L40.1203 792.328L39.3453 792.685ZM602.222 792.745V791.851H39.3453C39.3453 791.792 39.3453 792.685 39.3453 792.685V793.579L602.222 793.639V792.745ZM718.41 770.107L718.052 769.273C681.27 784.286 642.283 791.851 602.162 791.851V793.639C642.521 793.639 681.747 786.013 718.708 770.941L718.35 770.107H718.41ZM813.197 708.508L812.6 707.853C785.297 734.125 753.523 754.797 718.112 769.213L718.47 770.048L718.827 770.882C754.477 756.346 786.489 735.554 813.912 709.104L813.316 708.448L813.197 708.508ZM877.103 617.182L876.268 616.824C861.305 650.96 839.844 681.581 812.6 707.853L813.197 708.508L813.793 709.163C841.215 682.713 862.796 651.913 877.878 617.539L877.043 617.182H877.103ZM900.591 505.243H899.697C899.697 543.847 891.828 581.438 876.268 616.824L877.103 617.182L877.937 617.539C893.616 581.914 901.545 544.145 901.545 505.243H900.651H900.591ZM877.103 393.304L876.268 393.662C891.828 429.108 899.697 466.639 899.697 505.243H901.485C901.485 466.342 893.556 428.572 877.878 392.947L877.043 393.304H877.103ZM873.824 386.096L872.99 386.454C874.122 388.836 875.195 391.219 876.268 393.602L877.103 393.245L877.937 392.887C876.864 390.445 875.791 388.062 874.659 385.679L873.824 386.036V386.096ZM887.714 386.096V385.202H873.824V386.99H887.714V386.096ZM887.714 17.3359H886.82V386.096H888.608V17.3359H887.714ZM324.837 17.3359V18.2295H887.714V16.4423H324.837V17.3359ZM208.649 39.9738L209.007 40.8078C245.789 25.8549 284.777 18.2295 324.837 18.2295V16.4423C284.479 16.4423 245.312 24.0677 208.292 39.1398L208.649 39.9738ZM113.863 101.513L114.459 102.169C141.762 75.8966 173.537 55.2246 209.007 40.8078L208.649 39.9738L208.292 39.1398C172.643 53.6757 140.63 74.4669 113.207 100.858L113.803 101.513H113.863ZM49.9566 192.84L50.7912 193.197C65.814 159.061 87.2155 128.441 114.519 102.109L113.923 101.454L113.326 100.798C85.9039 127.249 64.3236 158.049 49.2412 192.422L50.0758 192.78L49.9566 192.84ZM26.409 304.838H27.3032C27.3032 266.234 35.1723 228.643 50.7316 193.257L49.897 192.899L49.0624 192.542C33.3839 228.167 25.4552 265.996 25.4552 304.838H26.3494H26.409ZM49.9566 416.776L50.7912 416.419C35.2319 380.973 27.3629 343.441 27.3629 304.838H25.5744C25.5744 343.739 33.5031 381.509 49.1816 417.134L50.0162 416.776H49.9566ZM53.2354 423.925L54.07 423.568C52.9373 421.185 51.8643 418.862 50.8508 416.419L50.0162 416.776L49.1816 417.134C50.2547 419.517 51.3277 421.959 52.4604 424.283L53.295 423.925H53.2354ZM39.3453 423.925V424.819H53.2354V423.032H39.3453V423.925ZM39.3453 792.685H40.2395V423.925H38.4511V792.685H39.3453ZM39.3453 792.685V791.792H37.9146L38.5703 793.103L39.3453 792.685ZM873.824 386.096V385.202H872.393L872.99 386.454L873.824 386.096ZM887.714 386.096V386.99H888.608V386.096H887.714ZM887.714 17.3359H888.608V16.4423H887.714V17.3359ZM53.2354 423.925V424.819H54.6661L54.07 423.568L53.2354 423.925ZM39.3453 423.925V423.032H38.4511V423.925H39.3453ZM39.3453 792.685L38.5703 793.103L40.2395 796.498V792.685H39.3453Z" fill="#ECE8E3"/>
+    <path opacity="0.5" d="M602.222 726.142V725.248H108.498C108.498 725.189 108.498 726.082 108.498 726.082V726.976L602.222 727.035V726.142ZM691.465 708.746L691.107 707.912C662.909 719.41 632.983 725.248 602.163 725.248V727.035C633.162 727.035 663.327 721.138 691.763 709.58L691.405 708.746H691.465ZM764.313 661.445L763.717 660.79C742.792 680.985 718.351 696.832 691.166 707.912L691.524 708.746L691.882 709.58C719.304 698.44 743.865 682.415 765.028 662.1L764.432 661.445H764.313ZM813.375 591.267L812.541 590.91C801.035 617.122 784.582 640.594 763.657 660.79L764.253 661.445L764.85 662.1C785.953 641.726 802.526 618.075 814.15 591.625L813.316 591.267H813.375ZM831.438 505.243H830.544C830.544 534.911 824.523 563.685 812.541 590.85L813.375 591.208L814.21 591.565C826.252 564.161 832.333 535.149 832.333 505.243H831.438ZM813.375 419.279L812.541 419.636C824.464 446.802 830.544 475.635 830.544 505.303H832.333C832.333 475.397 826.252 446.325 814.21 418.921L813.375 419.279ZM764.313 349.101L763.717 349.756C784.641 369.952 801.095 393.483 812.6 419.636L813.435 419.279L814.27 418.921C802.705 392.53 786.072 368.82 764.969 348.446L764.373 349.101H764.313ZM764.253 349.041L763.598 349.697L764.253 349.101L764.909 348.446L764.253 349.041ZM726.22 319.493L725.743 320.267C739.335 328.727 752.032 338.556 763.598 349.697L764.194 349.041L764.79 348.386C753.106 337.127 740.348 327.237 726.637 318.718L726.16 319.493H726.22ZM818.562 319.493V318.599H726.279V320.387H818.562V319.493ZM818.562 83.9391H817.668V319.433H819.456V83.9391H818.562ZM324.837 83.9391V84.8327H818.562V83.0455H324.837V83.9391ZM235.595 101.335L235.953 102.169C264.15 90.6709 294.077 84.8327 324.837 84.8327V83.0455C293.838 83.0455 263.673 88.9433 235.237 100.501L235.595 101.335ZM162.747 148.636L163.343 149.291C184.267 129.096 208.709 113.249 235.893 102.169L235.535 101.335L235.178 100.501C207.755 111.641 183.135 127.666 162.031 147.981L162.627 148.636H162.747ZM113.625 218.814L114.459 219.171C125.965 192.959 142.418 169.427 163.343 149.291L162.747 148.636L162.15 147.981C141.047 168.295 124.474 192.006 112.85 218.456L113.684 218.814H113.625ZM95.6211 304.838H96.5153C96.5153 275.17 102.536 246.337 114.459 219.171L113.625 218.814L112.79 218.456C100.748 245.86 94.6672 274.932 94.6672 304.838H95.5614H95.6211ZM113.625 390.802L114.459 390.445C102.536 363.279 96.4557 334.505 96.4557 304.838H94.6672C94.6672 334.744 100.748 363.816 112.79 391.16L113.625 390.802ZM162.806 460.98L163.402 460.325C142.418 440.189 125.965 416.657 114.459 390.445L113.625 390.802L112.79 391.16C124.415 417.61 140.987 441.321 162.091 461.635L162.687 460.98H162.806ZM200.78 490.529L201.257 489.754C187.665 481.295 175.027 471.465 163.402 460.325L162.806 460.98L162.21 461.635C173.894 472.895 186.652 482.784 200.363 491.303L200.84 490.529H200.78ZM108.498 490.529V491.422H200.721V489.635H108.498V490.529ZM108.498 726.023H109.392V490.529H107.604V726.023H108.498ZM108.498 726.082L107.723 725.665L107.067 726.976H108.498V726.082ZM764.313 349.101L763.657 349.756L764.253 349.101H764.313ZM764.253 349.041L764.909 348.386L764.313 349.041H764.253ZM726.22 319.493V318.599H723.06L725.743 320.267L726.22 319.493ZM818.562 319.493V320.387H819.456V319.493H818.562ZM818.562 83.9391H819.456V83.0455H818.562V83.9391ZM200.78 490.529V491.422H203.94L201.257 489.754L200.78 490.529ZM108.498 490.529V489.635H107.604V490.529H108.498ZM108.498 726.023L109.273 726.44L109.392 726.261V726.023H108.498Z" fill="#ECE8E3"/>
+    <path d="M339.085 252.83V251.936C324.778 251.936 311.782 257.536 302.363 266.651L302.959 267.306L303.555 267.962C312.617 259.204 325.195 253.783 339.026 253.783V252.89L339.085 252.83ZM749.409 252.83V251.936H339.145V253.724H749.409V252.83ZM749.409 150.602H748.515V252.83H750.304V150.602H749.409ZM324.837 150.602V151.496H749.35V149.708H324.837V150.602ZM164.773 304.838H165.668C165.668 220.184 236.907 151.496 324.837 151.496V149.708C235.953 149.708 163.879 219.111 163.879 304.838H164.773ZM211.69 413.857L212.286 413.202C183.492 385.5 165.668 347.135 165.668 304.838H163.879C163.879 347.671 181.942 386.454 211.034 414.513L211.63 413.857H211.69ZM324.837 459.014V458.12C280.902 458.12 241.08 440.963 212.286 413.202L211.69 413.857L211.094 414.513C240.245 442.631 280.485 459.967 324.897 459.967V459.074L324.837 459.014ZM515.066 459.014V458.12H324.897V459.908H515.066V459.014ZM515.066 458.895H514.172V459.014H515.96V458.895H515.066ZM587.974 458.895V458.001H515.066V459.789H587.974V458.895ZM639.004 508.043H639.898C639.898 480.401 616.649 458.001 587.974 458.001V459.789C615.695 459.789 638.11 481.414 638.11 508.043H639.004ZM587.974 557.191V558.085C616.649 558.085 639.898 535.685 639.898 508.043H638.11C638.11 534.672 615.695 556.298 587.974 556.298V557.191ZM177.65 557.191V558.085H587.915V556.298H177.65V557.191ZM177.65 659.419H178.544V557.191H176.756V659.419H177.65ZM602.222 659.479V658.585L177.71 658.526V660.313L602.222 660.373V659.479ZM762.286 505.243H761.392C761.392 589.838 690.153 658.585 602.222 658.585V660.373C691.107 660.373 763.18 590.91 763.18 505.243H762.286ZM715.429 396.164L714.833 396.819C743.627 424.581 761.451 462.946 761.451 505.243H763.24C763.24 462.41 745.177 423.627 716.085 395.509L715.489 396.164H715.429ZM602.222 351.007V351.901C646.158 351.901 685.98 369.118 714.774 396.819L715.37 396.164L715.966 395.509C686.815 367.45 646.575 350.054 602.162 350.054V350.948L602.222 351.007ZM482.1 351.007V351.901H602.222V350.114H482.1V351.007ZM482.1 351.186H482.994V351.007H481.205V351.186H482.1ZM339.085 351.186V352.08H482.1V350.292H339.085V351.186ZM288.056 301.978H287.161C287.161 329.68 310.411 352.08 339.085 352.08V350.292C311.365 350.292 288.95 328.667 288.95 301.978H288.056ZM303.019 267.247L302.423 266.592C293.004 275.587 287.221 288.157 287.221 301.919H289.009C289.009 288.634 294.613 276.54 303.674 267.843L303.078 267.187L303.019 267.247ZM303.019 267.306H302.124V269.392L303.615 267.902L303.019 267.247V267.306ZM749.409 252.83V253.724H750.304V252.83H749.409ZM749.409 150.602H750.304V149.708H749.409V150.602ZM515.066 459.014V459.908H515.96V459.014H515.066ZM515.066 458.895V458.001H514.172V458.895H515.066ZM177.65 557.191V556.298H176.756V557.191H177.65ZM177.65 659.419H176.756V660.313H177.65V659.419ZM482.1 351.007V350.114H481.205V351.007H482.1ZM482.1 351.186V352.08H482.994V351.186H482.1ZM303.019 267.247H303.913V265.162L302.423 266.592L303.019 267.247Z" fill="#ECE8E3"/>
+  </svg>
+
+  <div class="logo">
+    <svg width="160" height="49" viewBox="0 0 160 49" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="TSEA">
+      <path d="M127.699 27.566L134.994 9.92891L142.289 27.566H127.699ZM143.035 7.27833H126.952L113.897 41.8505H122.305L124.967 34.7298H145.035L147.682 41.8505H156.09L143.035 7.27833Z" fill="#ECE8E3"/>
+      <path d="M8.14922 7.27833H6.62827H3.91028V14.8432H17.4157V41.8505H25.8232V14.8432H36.16L39.0189 7.27833H8.14922Z" fill="#ECE8E3"/>
+      <path d="M85.4501 14.8289V20.8751H109.997V28.0389H85.4501V34.2856H112.855L110.011 41.8362H84.8304C80.9436 41.8362 77.8031 38.7272 77.8031 34.9017V7.264H112.855V14.8146H85.4501V14.8289Z" fill="#ECE8E3"/>
+      <path d="M74.8879 31.85C74.8879 37.6096 70.818 41.7073 64.2694 41.7073H39.3709L42.2157 34.1424H62.7203C64.537 34.1424 65.6636 33.5693 65.6636 32.1509C65.6636 30.7324 65.2834 29.9014 62.5231 29.4143L50.2288 27.2079C42.9761 25.9471 39.3709 22.5371 39.3709 16.9781C39.3709 11.419 43.4409 7.12074 49.9894 7.12074H73.4092V14.6857H51.5385C49.7218 14.6857 48.5952 15.2588 48.5952 16.6772C48.5952 18.0956 48.9754 18.9266 51.7357 19.4137L64.03 21.6202C71.2827 22.881 74.8879 26.2909 74.8879 31.85Z" fill="#ECE8E3"/>
+    </svg>
+  </div>
+
+  <!-- Hero black card -->
+  <div class="hero-card">
+    <p class="hero-title">Gerador de resumo técnico para propostas</p>
+    <p class="hero-desc">Envie os documentos de especificação e nossa IA gerará automaticamente a planilha no modelo padrão.</p>
+  </div>
+</header>
+
+<!-- ═══ FORM ═══ -->
+<main class="main-wrap">
+  <div class="form-card">
+    <form id="mainForm" novalidate onsubmit="handleSubmit(event)">
+
+      <!-- Section: Dados da solicitação -->
+      <div class="fields-section">
+        <div class="section-head">
+          <span>Dados da solicitação</span>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Nome do solicitante <span class="req">*</span></label>
+            <input id="inputNome" type="text" placeholder="Informe o nome do solicitante" required />
+          </div>
+          <div class="field">
+            <label>E-mail para envio do resultado <span class="req">*</span></label>
+            <input id="inputEmail" type="email" placeholder="Informe o e-mail para envio do resultado" required />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Cliente / Empresa <span class="req">*</span></label>
+            <input id="inputEmpresa" type="text" placeholder="Informe o nome do cliente/empresa" required />
+          </div>
+          <div class="field">
+            <label>Número da proposta</label>
+            <input id="inputProposta" type="text" placeholder="Informe o número da proposta" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: SC -->
+      <div class="fields-section" style="margin-top: 40px;">
+        <div class="section-head">
+          <span>SC</span>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Linha de produto <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="inputProduto" required>
+                <option value="" disabled selected>Selecione</option>
+                <option value="linha1">Linha 1</option>
+                <option value="linha2">Linha 2</option>
+                <option value="linha3">Linha 3</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Observações</label>
+            <input id="inputObs" type="text" placeholder="Ex.: Priorizar requisitos da seção 4." />
+          </div>
+        </div>
+
+        <!-- Upload -->
+        <div class="field">
+          <label>Upload de arquivos</label>
+          <p style="font-size:14px;color:var(--text-dark);line-height:1.4;margin-bottom:4px;">
+            Envie os documentos recebidos do cliente para análise. Você pode enviar múltiplos arquivos.
+          </p>
+          <div class="uploader" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <!-- Upload icon -->
+            <div class="upload-icon">
+              <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="10" width="32" height="40" rx="3" fill="#e8e8e8" stroke="#ccc" stroke-width="1.5"/>
+                <rect x="8" y="10" width="32" height="40" rx="3" fill="#f0f0f0" stroke="#bbb" stroke-width="1.5" transform="translate(4,-4)"/>
+                <rect x="8" y="10" width="32" height="40" rx="3" fill="#fafafa" stroke="#aaa" stroke-width="1.5" transform="translate(8,-8)"/>
+                <line x1="16" y1="26" x2="32" y2="26" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
+                <line x1="16" y1="32" x2="32" y2="32" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
+                <line x1="16" y1="38" x2="28" y2="38" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+
+            <div class="drag-text">
+              <span class="drag-title">Arraste e solte arquivos aqui</span>
+              <span class="drag-sub">PDF, DOCX, XLSX e formatos de imagem</span>
+            </div>
+
+            <button type="button" class="select-file-btn" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
+              Selecionar Arquivos
+            </button>
+          </div>
+
+          <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" onchange="handleFiles(this.files); this.value = '';" />
+
+          <div class="file-list" id="fileList"></div>
+        </div>
+      </div>
+
+      <!-- Info + Submit -->
+      <div style="display:flex;flex-direction:column;gap:40px;">
+        <p class="info-text">
+          Após o envio, os documentos serão analisados automaticamente e a planilha será gerada pela IA.<br>
+          Você receberá um e-mail com o link para acessar o resultado.
+        </p>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Enviar documentos para análise</button>
+      </div>
+
+    </form>
+  </div>
+<!-- ═══ TOAST DE ERRO ═══ -->
+<div id="errorToast" class="error-toast" role="alert" aria-live="assertive">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="10" cy="10" r="9" stroke="white" stroke-width="1.5"/>
+    <path d="M10 6v5M10 13.5v.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+  <span id="errorToastMsg">Erro ao enviar. Tente novamente.</span>
+  <button onclick="hideToast()" aria-label="Fechar">✕</button>
+</div>
+
+</main>
+
+<!-- ═══ TELA DE SUCESSO ═══ -->
+<div id="successScreen" class="success-screen" style="display:none;">
+  <div class="success-card">
+
+    <!-- Ícone checkmark animado -->
+    <div class="success-icon">
+      <svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="48" cy="48" r="44" stroke="#ff000d" stroke-width="3" class="check-circle"/>
+        <path d="M28 48.5L41.5 62L68 34" stroke="#ff000d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="check-path"/>
+      </svg>
+    </div>
+
+    <h2 class="success-title">Solicitação enviada com sucesso!</h2>
+
+    <p class="success-body">
+      Seus documentos foram recebidos e nossa IA já iniciou o processamento do resumo técnico.
+      Devido ao volume de dados, a geração da planilha pode levar alguns minutos.
+    </p>
+
+    <div class="success-email-box">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+        <rect x="1.5" y="4.5" width="15" height="10.5" rx="1.5" stroke="#ff000d" stroke-width="1.4"/>
+        <path d="M1.5 6l7.5 5.25L16.5 6" stroke="#ff000d" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <p>O link para download será enviado diretamente para o e-mail: <strong id="successEmail"></strong></p>
+    </div>
+
+    <div class="success-warning">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-top:1px">
+        <path d="M9 2L16.5 15H1.5L9 2Z" stroke="#ff7700" stroke-width="1.4" stroke-linejoin="round"/>
+        <path d="M9 7.5v3.5M9 13v.5" stroke="#ff7700" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <p>O processamento pode levar alguns minutos, dependendo do tamanho dos arquivos.</p>
+    </div>
+
+    <button class="new-analysis-btn" onclick="resetForm()">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 9a6 6 0 1 1 .75 2.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M3 13.5V9H7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Realizar nova análise
+    </button>
+  </div>
+</div>
+
+<script>
+  // ══════════════════════════════════════════════
+  //  ⚙️  CONFIGURAÇÃO — insira o endpoint aqui
+  // ══════════════════════════════════════════════
+  const API_ENDPOINT = 'https://SEU_WEBHOOK_AQUI';
+
+  // ══════════════════════════════════════════════
+  //  🧪  MODO TESTE — mude para false em produção
+  // ══════════════════════════════════════════════
+  const TEST_MODE = true;
+
+  // ── Estado ──
+  let uploadedFiles = [];
+  let isSubmitting  = false;
+
+  // ── Drag & Drop ──
+  const dropZone = document.getElementById('dropZone');
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    handleFiles(e.dataTransfer.files);
+  });
+
+  function handleFiles(files) {
+    Array.from(files).forEach(f => {
+      if (!uploadedFiles.find(u => u.file.name === f.name && u.file.size === f.size)) {
+        uploadedFiles.push({ file: f, progress: 100, done: true });
+      }
+    });
+    renderFileList();
+  }
+
+  function removeFile(idx) {
+    uploadedFiles.splice(idx, 1);
+    renderFileList();
+  }
+
+  function renderFileList() {
+    const list = document.getElementById('fileList');
+    list.innerHTML = uploadedFiles.map((item, i) => {
+      const f = item.file;
+      const size = f.size > 1024 * 1024
+        ? `${(f.size / 1024 / 1024).toFixed(1)} MB`
+        : `${(f.size / 1024).toFixed(1)} KB`;
+
+      const uploading  = item.progress > 0 && item.progress < 100;
+      const doneClass  = item.done ? 'done' : '';
+      const statusLabel = item.done
+        ? '✓ Pronto'
+        : uploading ? `${item.progress}%` : '';
+      const showBar = uploading || item.done;
+
+      return `
+        <div class="file-item-wrap">
+          <div class="file-item">
+            <span>📄 <strong>${f.name}</strong> <span class="file-size-label">(${size})</span></span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              ${statusLabel ? `<span class="file-status ${doneClass}">${statusLabel}</span>` : ''}
+              ${!uploading ? `<button type="button" onclick="removeFile(${i})" title="Remover">✕</button>` : ''}
+            </div>
+          </div>
+          ${showBar ? `
+          <div class="file-progress">
+            <div class="file-progress-bar ${doneClass}" style="width:${item.progress}%"></div>
+          </div>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ── Toast ──
+  let toastTimer = null;
+  function showToast(msg) {
+    const toast = document.getElementById('errorToast');
+    document.getElementById('errorToastMsg').textContent = msg;
+    toast.classList.add('visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 6000);
+  }
+  function hideToast() {
+    document.getElementById('errorToast').classList.remove('visible');
+  }
+
+  // ── Botão: estado de loading ──
+  function setLoading(on) {
+    const btn = document.getElementById('submitBtn');
+    isSubmitting = on;
+    btn.disabled = on;
+    btn.textContent = on ? 'Enviando...' : 'Enviar documentos para análise';
+    btn.style.opacity = on ? '0.7' : '1';
+  }
+
+  // ── Submit com progresso real via XHR ──
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    const form = e.target;
+
+    // Modo teste: pula tudo e vai direto para o sucesso
+    if (TEST_MODE) {
+      const email = document.getElementById('inputEmail').value.trim() || 'teste@exemplo.com';
+      // Simula progresso visual de upload (apenas em TEST_MODE)
+      await simulateUploadProgress();
+      showSuccessScreen(email);
+      return;
+    }
+
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+
+    const email = document.getElementById('inputEmail').value.trim();
+
+    const formData = new FormData();
+    formData.append('nome',        document.getElementById('inputNome').value.trim());
+    formData.append('email',       email);
+    formData.append('empresa',     document.getElementById('inputEmpresa').value.trim());
+    formData.append('proposta',    document.getElementById('inputProposta').value.trim());
+    formData.append('produto',     document.getElementById('inputProduto').value);
+    formData.append('observacoes', document.getElementById('inputObs').value.trim());
+    uploadedFiles.forEach(item => formData.append('arquivos[]', item.file, item.file.name));
+
+    setLoading(true);
+    hideToast();
+
+    // Marca todos os arquivos como "enviando" (progress = 0)
+    uploadedFiles.forEach(item => { item.progress = 0; item.done = false; });
+    renderFileList();
+
+    try {
+      await xhrUpload(API_ENDPOINT, formData, (percent) => {
+        // Distribui o progresso global entre todos os arquivos
+        uploadedFiles.forEach(item => {
+          item.progress = percent;
+          item.done = percent === 100;
+        });
+        renderFileList();
+      });
+
+      showSuccessScreen(email);
+
+    } catch (err) {
+      // Em erro, restaura arquivos como "prontos" para nova tentativa
+      uploadedFiles.forEach(item => { item.progress = 100; item.done = true; });
+      renderFileList();
+      showToast('Não foi possível enviar. Verifique sua conexão e tente novamente.');
+      console.error('[TSEA] Erro ao enviar:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // XHR com progresso real de upload de rede
+  function xhrUpload(url, formData, onProgress) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', url);
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          onProgress(percent);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          onProgress(100);
+          resolve(xhr.response);
+        } else {
+          reject(new Error(`Erro ${xhr.status}: ${xhr.statusText}`));
+        }
+      });
+
+      xhr.addEventListener('error',  () => reject(new Error('Falha de rede')));
+      xhr.addEventListener('abort',  () => reject(new Error('Envio cancelado')));
+      xhr.send(formData);
+    });
+  }
+
+  // Simula progresso visual apenas em TEST_MODE
+  function simulateUploadProgress() {
+    if (uploadedFiles.length === 0) return Promise.resolve();
+    uploadedFiles.forEach(item => { item.progress = 0; item.done = false; });
+    renderFileList();
+
+    return new Promise(resolve => {
+      // Velocidade proporcional ao tamanho total dos arquivos
+      const totalBytes = uploadedFiles.reduce((s, i) => s + i.file.size, 0);
+      const durationMs = Math.max(1500, Math.min(totalBytes / 50000 * 1000, 8000));
+      const steps = 60;
+      const interval = durationMs / steps;
+      let step = 0;
+
+      const timer = setInterval(() => {
+        step++;
+        const percent = Math.min(Math.round((step / steps) * 100), 100);
+        uploadedFiles.forEach(item => { item.progress = percent; item.done = percent === 100; });
+        renderFileList();
+
+        if (percent >= 100) {
+          clearInterval(timer);
+          setTimeout(resolve, 300);
+        }
+      }, interval);
+    });
+  }
+
+  // ── Tela de sucesso ──
+  function showSuccessScreen(email) {
+    document.querySelector('.main-wrap').style.display = 'none';
+    document.getElementById('successEmail').textContent = email;
+    document.getElementById('successScreen').style.display = 'flex';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Reset — volta ao formulário zerado ──
+  function resetForm() {
+    document.getElementById('mainForm').reset();
+    uploadedFiles = [];
+    renderFileList();
+    document.getElementById('successScreen').style.display = 'none';
+    document.querySelector('.main-wrap').style.display = 'flex';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
