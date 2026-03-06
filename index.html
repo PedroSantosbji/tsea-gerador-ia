@@ -191,37 +191,65 @@
     /* custom select */
     .select-wrap {
       position: relative;
+      width: 100%;
     }
 
-    .select-wrap select {
-      appearance: none;
-      -webkit-appearance: none;
+    .custom-select {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px 42px 16px 16px;
+      padding: 16px;
       font-size: 16px;
       font-family: 'Inter', sans-serif;
-      color: var(--text-placeholder);
+      color: var(--text-dark);
       background: var(--white);
-      outline: none;
-      width: 100%;
       cursor: pointer;
+      user-select: none;
       transition: border-color .2s;
+      gap: 8px;
     }
 
-    .select-wrap select:focus { border-color: #888; }
+    .custom-select:focus,
+    .custom-select.open {
+      border-color: #888;
+      outline: none;
+    }
 
-    .select-wrap::after {
-      content: '';
+    .select-placeholder { color: var(--text-placeholder); }
+    .select-value        { color: var(--text-dark); font-weight: 500; }
+
+    .select-arrow {
+      flex-shrink: 0;
+      transition: transform .2s ease;
+    }
+    .custom-select.open .select-arrow { transform: rotate(180deg); }
+
+    .select-dropdown {
+      display: none;
       position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 10px;
-      height: 6px;
-      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23cfccc9' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center;
-      pointer-events: none;
+      top: calc(100% + 4px);
+      left: 0; right: 0;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      overflow: hidden;
     }
+    .select-dropdown.open { display: block; }
+
+    .select-option {
+      padding: 14px 16px;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .select-option:hover    { background: #f5f5f5; }
+    .select-option.selected { background: #fff0f0; color: var(--red); font-weight: 500; }
 
     /* ── UPLOADER ── */
     .uploader {
@@ -607,14 +635,20 @@
         <div class="field-row">
           <div class="field">
             <label>Linha de produto <span class="req">*</span></label>
-            <div class="select-wrap">
-              <select id="inputProduto" required>
-                <option value="" disabled selected>Selecione</option>
-                <option value="linha1">Linha 1</option>
-                <option value="linha2">Linha 2</option>
-                <option value="linha3">Linha 3</option>
-              </select>
+          <div class="select-wrap" id="produtoWrap">
+            <div class="custom-select" id="produtoSelect" onclick="toggleSelect()" tabindex="0" onkeydown="handleSelectKey(event)">
+              <span id="produtoLabel" class="select-placeholder">Selecione</span>
+              <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" class="select-arrow" id="selectArrow">
+                <path d="M1 1.5L6 6.5L11 1.5" stroke="#2a2c2f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </div>
+            <div class="select-dropdown" id="selectDropdown">
+              <div class="select-option" onclick="selectOption('transformador', 'Transformador')">Transformador</div>
+              <div class="select-option" onclick="selectOption('regulador_tensao', 'Regulador de tensão')">Regulador de tensão</div>
+            </div>
+            <!-- input hidden para o FormData -->
+            <input type="hidden" id="inputProduto" required />
+          </div>
           </div>
           <div class="field">
             <label>Observações</label>
@@ -837,6 +871,12 @@
     }
 
     if (!form.checkValidity()) { form.reportValidity(); return; }
+    if (!document.getElementById('inputProduto').value) {
+      document.getElementById('produtoSelect').style.borderColor = 'var(--red)';
+      document.getElementById('produtoSelect').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    document.getElementById('produtoSelect').style.borderColor = '';
 
     const email = document.getElementById('inputEmail').value.trim();
 
@@ -952,6 +992,49 @@
     document.querySelector('.main-wrap').style.display = 'flex';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+  // ── Custom Select ──
+  let selectedProduto = '';
+
+  function toggleSelect() {
+    const sel  = document.getElementById('produtoSelect');
+    const drop = document.getElementById('selectDropdown');
+    const open = drop.classList.contains('open');
+    closeSelect();
+    if (!open) {
+      sel.classList.add('open');
+      drop.classList.add('open');
+    }
+  }
+
+  function selectOption(value, label) {
+    selectedProduto = value;
+    document.getElementById('inputProduto').value = value;
+    const lbl = document.getElementById('produtoLabel');
+    lbl.textContent = label;
+    lbl.className = 'select-value';
+
+    // Marca a opção selecionada visualmente
+    document.querySelectorAll('.select-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.textContent.trim() === label);
+    });
+
+    closeSelect();
+  }
+
+  function closeSelect() {
+    document.getElementById('produtoSelect').classList.remove('open');
+    document.getElementById('selectDropdown').classList.remove('open');
+  }
+
+  function handleSelectKey(e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSelect(); }
+    if (e.key === 'Escape') closeSelect();
+  }
+
+  // Fecha ao clicar fora
+  document.addEventListener('click', (e) => {
+    if (!document.getElementById('produtoWrap').contains(e.target)) closeSelect();
+  });
 </script>
 </body>
 </html>
